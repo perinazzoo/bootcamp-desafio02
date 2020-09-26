@@ -17,12 +17,28 @@ function isValidUuid(req, res, next) {
     return res.status(400).json({ error: 'O ID não é válido' });
   }
 
+  req.repositoryId = id;
+
+  next();
+}
+
+function repositoryExists(req, res, next) {
+  const { repositoryId } = req;
+
+  const repositoryIndex = repositories.findIndex(r => r.id === repositoryId);
+
+  if (repositoryIndex < 0) {
+    return res.status(400).json({ error: 'Repositório não existe' });
+  }
+
+  req.repositoryIndex = repositoryIndex;
+
   next();
 }
 
 const repositories = [];
 
-app.use('/repositories/:id', isValidUuid);
+app.use('/repositories/:id', isValidUuid, repositoryExists);
 
 app.get("/repositories", (req, res) => {
   res.json(repositories);
@@ -45,15 +61,10 @@ app.post("/repositories", (req, res) => {
 });
 
 app.put("/repositories/:id", (req, res) => {
+  const { repositoryIndex, repositoryId } = req;
   const { title, url, techs } = req.body;
-  const { id } = req.params;
 
-  const repositoryIndex = repositories.findIndex(r => r.id === id);
-  const repository = repositories.find(r => r.id === id);
-
-  if (repositoryIndex < 0) {
-    return res.status(400).json({ error: 'Repositório não existe' });
-  }
+  const repository = repositories.find(r => r.id === repositoryId);
 
   const newRepositoryData = {
     ...repository,
@@ -68,13 +79,7 @@ app.put("/repositories/:id", (req, res) => {
 });
 
 app.delete("/repositories/:id", (req, res) => {
-  const { id } = req.params;
-
-  const repositoryIndex = repositories.findIndex(r => r.id === id);
-
-  if (repositoryIndex < 0) {
-    return res.status(400).json({ error: 'Repositório não existe' });
-  }
+  const { repositoryIndex } = req;
 
   repositories.splice(repositoryIndex, 1);
 
@@ -82,7 +87,18 @@ app.delete("/repositories/:id", (req, res) => {
 });
 
 app.post("/repositories/:id/like", (req, res) => {
-  // TODO
+  const { repositoryIndex, repositoryId } = req;
+
+  const repository = repositories.find(r => r.id === repositoryId);
+
+  const repoWithLikes = {
+    ...repository,
+    likes: repository.likes + 1,
+  }
+
+  repositories[repositoryIndex] = repoWithLikes;
+
+  res.json(repoWithLikes);
 });
 
 module.exports = app;
