@@ -49,6 +49,18 @@ app.get("/repositories", (req, res) => {
 app.post("/repositories", (req, res) => {
   const { title, url, techs } = req.body;
 
+  if (!title) {
+    return res.status(400).json({ error: 'You need to specify a title.' });
+  }
+
+  if (!url) {
+    return res.status(400).json({ error: 'You need to specify a url.' });
+  }
+
+  if (!techs) {
+    return res.status(400).json({ error: 'You need to specify the techs.' });
+  }
+
   const repository = {
     title,
     url,
