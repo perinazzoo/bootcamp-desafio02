@@ -112,7 +112,9 @@ app.post("/repositories/:id/like", (req, res) => {
 
   repositories[repositoryIndex] = repoWithLikes;
 
-  res.json(repoWithLikes);
+  const { id, likes } = repoWithLikes;
+
+  res.json({ id, likes });
 });
 
 module.exports = app;
